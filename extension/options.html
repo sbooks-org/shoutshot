@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Shoutshot Settings</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>
+    body { padding: 32px 16px 64px; }
+    main { max-width: 760px; margin: 0 auto; }
+    h1 { display: flex; align-items: center; gap: 10px; font-size: 22px; margin: 0 0 4px; }
+    h1 img { width: 32px; height: 32px; }
+    h2 { font-size: 15px; margin: 0 0 12px; }
+    section { border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-top: 18px; }
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    .field > label { display: block; font-weight: 600; margin-bottom: 5px; }
+    .help { font-size: 12px; color: var(--muted); margin-top: 5px; }
+    .inline { display: flex; gap: 8px; align-items: center; }
+    .inline input { flex: 1; }
+    .check { display: flex; gap: 8px; align-items: center; font-weight: 600; }
+    .result { font-size: 12px; margin-top: 5px; min-height: 1em; }
+    #saved { position: fixed; top: 14px; right: 16px; background: var(--ok); color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 600; opacity: 0; transition: opacity .2s; }
+    #saved.show { opacity: 1; }
+    #preview { background: var(--panel); padding: 6px 9px; border-radius: 6px; margin-top: 6px; word-break: break-all; }
+    .disabled { opacity: .5; pointer-events: none; }
+    ol { padding-left: 20px; margin: 6px 0 0; }
+    .radio { display: flex; gap: 8px; align-items: center; font-weight: 400 !important; margin: 4px 0 !important; }
+    .when-web, .when-api { margin: 2px 0 6px 24px; }
+    .when-api input { width: 100%; }
+    .host-card { border-top: 1px solid var(--border); padding-top: 14px; }
+    .host-card .result { margin: 0; }
+    .row-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1><img src="icons/icon128.png" alt="">Shoutshot</h1>
+  <div class="muted">Right-click an image → <b>Upload to Imgur / ImgBB</b>. The <code>[img]</code> BBCode lands on your clipboard.</div>
+  <div id="saved">Saved</div>
+
+  <section>
+    <h2>Accounts</h2>
+    <div class="help" style="margin: -6px 0 14px">
+      By default Shoutshot uploads exactly like the websites do, with no key needed.
+      To have uploads land in an account (e.g. a throwaway one), just <b>log in to imgbb.com / imgur.com in this browser</b>.
+      If you're logged out, uploads are anonymous guest uploads. Press <b>Test</b> to see which one you'll get.
+    </div>
+
+    <div class="field host-card" data-host="imgbb">
+      <label>ImgBB</label>
+      <label class="radio"><input type="radio" name="imgbbMode" value="web"> Like the website <span class="muted">(your imgbb.com login, or guest)</span></label>
+      <div class="when-web help">
+        <a href="https://imgbb.com/login" target="_blank">Log in to imgbb.com</a>
+      </div>
+      <label class="radio"><input type="radio" name="imgbbMode" value="api"> With my API key</label>
+      <div class="when-api">
+        <input type="password" id="imgbbApiKey" autocomplete="off" spellcheck="false" placeholder="32-character key">
+        <div class="help">Get one at <a href="https://api.imgbb.com/" target="_blank">api.imgbb.com</a> → <b>Get API key</b>. API uploads go to the account that owns the key.</div>
+      </div>
+      <div class="inline" style="margin-top: 8px"><button data-test="imgbb">Test</button><span class="result" id="test-imgbb"></span></div>
+    </div>
+
+    <div class="field host-card" data-host="imgur">
+      <label>Imgur</label>
+      <label class="radio"><input type="radio" name="imgurMode" value="web"> Like the website <span class="muted">(your imgur.com login, or guest)</span></label>
+      <div class="when-web help">
+        <a href="https://imgur.com/signin" target="_blank">Log in to imgur.com</a>
+      </div>
+      <label class="radio"><input type="radio" name="imgurMode" value="api"> With my own API Client ID <span class="muted">(always anonymous)</span></label>
+      <div class="when-api">
+        <input type="password" id="imgurClientId" autocomplete="off" spellcheck="false" placeholder="e.g. 1a2b3c4d5e6f7a8">
+        <div class="help">Register at <a href="https://api.imgur.com/oauth2/addclient" target="_blank">api.imgur.com/oauth2/addclient</a> (choose <b>OAuth 2 authorization without a callback URL</b>) and paste the Client ID.</div>
+      </div>
+      <div class="inline" style="margin-top: 8px"><button data-test="imgur">Test</button><span class="result" id="test-imgur"></span></div>
+      <div class="help">The test uploads a tiny 8×8 image and deletes it again right away (ImgBB: auto-deletes after 5 minutes).</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Behavior</h2>
+    <div class="field">
+      <label>Default host</label>
+      <div class="seg" id="hostSeg" style="max-width: 240px">
+        <button data-host="imgbb">ImgBB</button>
+        <button data-host="imgur">Imgur</button>
+      </div>
+      <div class="help">Used by the keyboard shortcuts. The right-click menu always offers both.</div>
+    </div>
+    <div class="field">
+      <label for="templatePreset">What goes on the clipboard</label>
+      <select id="templatePreset"></select>
+      <input type="text" id="template" class="mono" style="margin-top: 6px" spellcheck="false">
+      <div class="help"><code>{url}</code> = direct image link, <code>{viewer}</code> = the image's page on Imgur/ImgBB.</div>
+      <div id="preview" class="mono"></div>
+    </div>
+    <div class="field" id="saveField">
+      <label class="check"><input type="checkbox" id="saveLocal"> Save a copy of every upload</label>
+      <div class="inline" style="margin-top: 6px">
+        <span class="muted">Downloads/</span><input type="text" id="saveFolder" placeholder="Shoutshot">
+      </div>
+      <div class="help" id="saveHelp">
+        Copies go into this folder inside your browser's Downloads folder.
+      </div>
+      <div class="help" id="saveDialogHelp">
+        <b>Getting a Save As dialog for every upload?</b> That's your browser's own
+        "ask where to save" setting, and extensions can't override it. To stop the dialog, turn that setting off:
+        <ul style="margin: 4px 0; padding-left: 18px">
+          <li><b>Brave or Chrome:</b> Settings → Downloads → turn off <i>Ask where to save each file before downloading</i>.</li>
+          <li><b>Edge:</b> Settings → Downloads → turn off the option that asks where to save each file.</li>
+        </ul>
+        This changes it for every download in the browser, not just Shoutshot's. Or untick "Save a copy" to stop saving copies.
+        <div style="margin-top: 6px"><button class="small" id="openDownloadSettings">Open download settings</button></div>
+      </div>
+    </div>
+    <div class="field">
+      <label for="imgbbExpiration">ImgBB: auto-delete uploads after</label>
+      <select id="imgbbExpiration"></select>
+    </div>
+    <div class="field">
+      <label class="check"><input type="checkbox" id="showToast"> Show a little status card on the page while uploading</label>
+      <div class="help">Errors are always shown.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Keyboard shortcuts</h2>
+    <div id="shortcuts" class="muted"></div>
+    <div class="help" id="shortcutHelp">Change them at <a href="#" id="openShortcuts">chrome://extensions/shortcuts</a>.</div>
+  </section>
+
+  <section>
+    <div class="row-between">
+      <h2 style="margin: 0">History</h2>
+      <button class="small" id="clearHistory">Clear list</button>
+    </div>
+    <ul class="hist" id="hist"></ul>
+    <div class="help">Clearing the list only forgets the links; it doesn't delete the images.</div>
+  </section>
+
+  <footer class="help" style="margin-top: 24px; text-align: center">
+    Shoutshot <span id="version"></span> ·
+    Copyright © 2026 Simplebooks Foundation and Josh Rodd ·
+    MIT-0 license (free to use, copy, modify and share)
+  </footer>
+</main>
+<script src="defaults.js"></script>
+<script src="shared.js"></script>
+<script src="history-ui.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.DS_Store
+dist/
+safari/build/
+xcuserdata/
+*.xcuserstate
+.claude/
+__pycache__/

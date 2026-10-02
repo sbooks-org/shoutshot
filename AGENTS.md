@@ -1,0 +1,1 @@
+If you, as the LLM-based coding harness agent, make a commit, ensure you add an Assisted-By: LLM entry, per the Linux kernel standards. Don't advertise the specific harness or models used; simply use the text "LLM". Do not add a Co-Authored-By. Do not add a Signed-Off-By; that should only ever manually be added by a human.
